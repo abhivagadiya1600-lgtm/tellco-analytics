@@ -1,0 +1,17 @@
+# Byte-compiled / Python cache
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Data files (keep raw/large CSVs out of Git)
+data/*.csv
+
+# VS Code settings
+.vscode/
