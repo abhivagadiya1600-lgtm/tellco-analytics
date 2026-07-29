@@ -1,4 +1,7 @@
-import streamlit as st
+import warnings
+warnings.filterwarnings('ignore', category=UserWarning)
+
+import streamlit as st # type: ignore
 import pandas as pd
 import joblib
 
