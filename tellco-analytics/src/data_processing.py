@@ -1,11 +1,25 @@
-import pandas as pd
-import numpy as np
+import os
 import logging
+import pandas as pd
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def load_data(train_path='data/train.csv', test_path='data/test.csv', store_path='data/store.csv'):
-    """Loads train, test, and store datasets and merges store details."""
+# Find the root project folder relative to this file
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.path.join(BASE_DIR, 'data')
+
+def load_data(
+    train_path=os.path.join(DATA_DIR, 'train.csv'),
+    test_path=os.path.join(DATA_DIR, 'test.csv'),
+    store_path=os.path.join(DATA_DIR, 'store.csv')
+):
+    """Loads train, test, and store datasets safely."""
+    # Fallback to local 'data' directory if BASE_DIR/data doesn't exist
+    if not os.path.exists(train_path):
+        train_path = os.path.join('data', 'train.csv')
+        test_path = os.path.join('data', 'test.csv')
+        store_path = os.path.join('data', 'store.csv')
+
     train = pd.read_csv(train_path, parse_dates=['Date'], low_memory=False)
     test = pd.read_csv(test_path, parse_dates=['Date'], low_memory=False)
     store = pd.read_csv(store_path, low_memory=False)
@@ -15,18 +29,18 @@ def load_data(train_path='data/train.csv', test_path='data/test.csv', store_path
     return train_merged, test_merged
 
 def preprocess_data(df):
-    """Extracts date features, encodes categorical variables, and fills missing values."""
+    """Extracts features, handles missing values, and encodes categorical variables."""
     logging.info("Preprocessing features...")
     df = df.copy()
     
-    # 1. Extract Date Features
+    # 1. Date Features
     df['Year'] = df['Date'].dt.year
     df['Month'] = df['Date'].dt.month
     df['Day'] = df['Date'].dt.day
     df['WeekOfYear'] = df['Date'].dt.isocalendar().week.astype(int)
     df['IsWeekend'] = df['DayOfWeek'].apply(lambda x: 1 if x in [6, 7] else 0)
     
-    # 2. Handle Missing Values
+    # 2. Missing Values
     df['CompetitionDistance'] = df['CompetitionDistance'].fillna(df['CompetitionDistance'].median())
     df['CompetitionOpenSinceMonth'] = df['CompetitionOpenSinceMonth'].fillna(0)
     df['CompetitionOpenSinceYear'] = df['CompetitionOpenSinceYear'].fillna(0)
@@ -35,7 +49,7 @@ def preprocess_data(df):
     df['PromoInterval'] = df['PromoInterval'].fillna('None')
     df['Open'] = df['Open'].fillna(1)
     
-    # 3. Categorical Encoding
+    # 3. Categorical Mappings
     mappings = {'a': 1, 'b': 2, 'c': 3, 'd': 4, 0: 0}
     df['StoreType'] = df['StoreType'].map(mappings).fillna(0)
     df['Assortment'] = df['Assortment'].map(mappings).fillna(0)
